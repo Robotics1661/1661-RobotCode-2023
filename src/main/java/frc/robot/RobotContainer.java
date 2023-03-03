@@ -37,7 +37,6 @@ public class RobotContainer {
   //private final XboxController m_controller = new XboxController(0);
   private final JoyXboxWrapper m_combined_controller = new JoyXboxWrapper(0, 3, true);
   private final Compressor m_compressor = new Compressor(Constants.PCM, PneumaticsModuleType.CTREPCM);
-  private final DoubleSolenoid m_test_solenoid = new DoubleSolenoid(Constants.PCM, PneumaticsModuleType.CTREPCM, 1, 0);
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -52,7 +51,8 @@ public class RobotContainer {
             m_drivetrainSubsystem,
             () -> -modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
             () -> -modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.25
+            () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.25,
+            m_combined_controller::getBalance
     ));
     m_armSubsystem.setDefaultCommand(new ArmSimpleMotionCommand(
             m_armSubsystem,
@@ -94,16 +94,6 @@ public class RobotContainer {
     new Button(m_combined_controller::getZeroButton)
             // No requirements because we don't need to interrupt anything
             .whenPressed(m_drivetrainSubsystem::zeroGyroscope);
-  }
-
-  private void forwardSolenoid() {
-    SmartDashboard.putString("solenoid", "forward");
-    m_test_solenoid.set(Value.kForward);
-  }
-
-  private void reverseSolenoid() {
-    SmartDashboard.putString("solenoid", "backward");
-    m_test_solenoid.set(Value.kReverse);
   }
 
   /**

@@ -51,13 +51,13 @@ public final class Constants {
     public static final int PCM = 30; //pneumatics control module
     public static final int ELBOW_MOTOR = 40;
     public static final int SHOULDER_MOTOR = 41;
-    public static final double ELBOW_MAX_SPEED = -0.2; //percent (flipped)
-    public static final double SHOULDER_MAX_SPEED = 0.2; //percent
+    public static final double ELBOW_MAX_SPEED = -0.35; //percent (flipped)
+    public static final double SHOULDER_MAX_SPEED = -0.35; //percent (flipped)
 
     public static final int SOLENOID_6_INCH_FORWARD = 1;
     public static final int SOLENOID_6_INCH_REVERSE = 0;
-    public static final int SOLENOID_7_INCH_FORWARD = 3;
-    public static final int SOLENOID_7_INCH_REVERSE = 2;
+    public static final int SOLENOID_7_INCH_FORWARD = 6;
+    public static final int SOLENOID_7_INCH_REVERSE = 7;
 
     public static final int CONE_BUTTON = 5;
     public static final int CUBE_BUTTON = 6;

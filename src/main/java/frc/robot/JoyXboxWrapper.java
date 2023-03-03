@@ -21,6 +21,10 @@ public class JoyXboxWrapper {
         m_soft_disabled = controllerMode;
     }
 
+    public boolean getBalance() {
+        return getFlightButton(4);
+    }
+
     public double getLateralX() {
         return isSoftDisabled() ? 0 : m_joystick.getX();
     }

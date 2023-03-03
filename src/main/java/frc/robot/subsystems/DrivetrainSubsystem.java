@@ -169,12 +169,43 @@ public class DrivetrainSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("zero_times", SmartDashboard.getNumber("zero_times", 0)+1);
     //m_navx.zeroYaw();
     //m_pigeon.zeroGyroBiasNow();
+//    m_pigeon.zeroGyroBiasNow();
     m_pigeon.setYaw(0);
   }
 
   public void calibrateGyro() {
+        m_pigeon.zeroGyroBiasNow();
+        zeroGyroscope();
         //m_navx.calibrate();
         //m_pigeon.enterCalibrat
+  }
+
+  public double[] getFullGyroscopeRotation() {
+        double[] ypr = new double[3];
+        m_pigeon.getYawPitchRoll(ypr); //y + z indicate tilt
+//        m_pigeon.getAccumGyro(xyz);
+//        m_pigeon.getGravityVector(xyz); // it is the y that indicates tilt
+        return ypr;
+  }
+
+  public double getChargeStationPitch() {
+        double[] ypr = getFullGyroscopeRotation();
+        double yaw = ypr[0];
+        double pitch = ypr[1];
+        double roll = ypr[2];
+        SmartDashboard.putNumber("robotYaw", yaw);
+        SmartDashboard.putNumber("robotPitch", pitch);
+        SmartDashboard.putNumber("robotRoll", roll);
+
+        double yaw_Rad = Math.toRadians(yaw);
+        double pitch_Rad = Math.toRadians(pitch);
+        double roll_Rad = Math.toRadians(roll);
+
+        // sin(yaw)*pitch + cos(yaw)*roll // sin and cos might be flipped
+        double chargePitch_Rad = Math.sin(yaw_Rad)*pitch_Rad + Math.cos(yaw_Rad) * roll_Rad;
+        double chargePitch = Math.toDegrees(chargePitch_Rad);
+        SmartDashboard.putNumber("chargePitch", chargePitch);
+        return chargePitch;
   }
 
   public Rotation2d getGyroscopeRotation() {
@@ -211,5 +242,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
         zeroGyroscope();
     } //TODO test this
     SmartDashboard.putNumber("gyro", getGyroscopeRotation().getDegrees());
+    double chargePitch = getChargeStationPitch();
+//    SmartDashboard.putNumber("gravityCombined", Math.sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]));
   }
 }
