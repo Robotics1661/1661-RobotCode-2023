@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -18,11 +19,18 @@ public class ClawSubsystem extends SubsystemBase {
         mode = Mode.OPEN;
     }
 
+    public void setNeutral() {
+        solenoid_6_inch.set(Value.kOff);
+        solenoid_7_inch.set(Value.kOff);
+    }
+
     public void setMode(Mode mode) {
         this.mode = mode;
         //apply mode
         solenoid_6_inch.set(this.mode.mode_6_inch);
         solenoid_7_inch.set(this.mode.mode_7_inch);
+
+        SmartDashboard.putString("clawMode", this.mode.name());
     }
 
     public Mode getMode() {

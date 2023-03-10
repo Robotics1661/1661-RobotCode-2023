@@ -54,8 +54,8 @@ public final class Constants {
     public static final double ELBOW_MAX_SPEED = -0.35; //percent (flipped)
     public static final double SHOULDER_MAX_SPEED = -0.35; //percent (flipped)
 
-    public static final int SOLENOID_6_INCH_FORWARD = 1;
-    public static final int SOLENOID_6_INCH_REVERSE = 0;
+    public static final int SOLENOID_6_INCH_FORWARD = 2;
+    public static final int SOLENOID_6_INCH_REVERSE = 3;
     public static final int SOLENOID_7_INCH_FORWARD = 6;
     public static final int SOLENOID_7_INCH_REVERSE = 7;
 

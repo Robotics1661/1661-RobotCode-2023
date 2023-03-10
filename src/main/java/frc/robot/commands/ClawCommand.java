@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.ClawSubsystem;
 
@@ -29,16 +30,34 @@ public class ClawCommand extends CommandBase {
         addRequirements(clawSubsystem);
     }
 
+    private double solenoidNeutralTime = 0;
+    private boolean neutralizeSolenoid = false;
+
     @Override
     public void execute() {
+        double now = Timer.getFPGATimestamp();
+        if (neutralizeSolenoid && now >= solenoidNeutralTime) {
+            neutralizeSolenoid = false;
+            m_clawSubsystem.setNeutral();
+        }
+
+        boolean changed = false;
         if (m_coneSupplier.getAsBoolean()) {
             m_clawSubsystem.grabCone();
+            changed = true;
         } else if (m_cubeSupplier.getAsBoolean()) {
             m_clawSubsystem.grabCube();
+            changed = true;
         } else if (m_releaseSupplier.getAsBoolean()) {
             m_clawSubsystem.release();
+            changed = true;
         } else if (m_offSupplier.getAsBoolean()) {
             m_clawSubsystem.turnOff();
+        }
+
+        if (changed) {
+            neutralizeSolenoid = true;
+            solenoidNeutralTime = now + 0.5;
         }
     }
 

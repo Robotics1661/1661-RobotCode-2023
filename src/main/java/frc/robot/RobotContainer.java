@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.Button;
 import frc.robot.commands.ArmSimpleMotionCommand;
+import frc.robot.commands.AutonomousDriveBackCommand;
 import frc.robot.commands.ClawCommand;
 import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.subsystems.ArmSubsystem;
@@ -51,13 +52,14 @@ public class RobotContainer {
             m_drivetrainSubsystem,
             () -> -modifyAxis(m_combined_controller.getLateralY(), "left_y", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
             () -> -modifyAxis(m_combined_controller.getLateralX(), "left_x", true) * DrivetrainSubsystem.MAX_VELOCITY_METERS_PER_SECOND,
-            () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.25,
+            () -> -modifyAxis(m_combined_controller.getRotation(), "right_x", true) * DrivetrainSubsystem.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND * 0.15,
             m_combined_controller::getBalance
     ));
     m_armSubsystem.setDefaultCommand(new ArmSimpleMotionCommand(
             m_armSubsystem,
             () -> modifyAxis(m_combined_controller.getElbowRotation(), "elbow", false) * Constants.ELBOW_MAX_SPEED,
-            () -> modifyAxis(m_combined_controller.getShoulderRotation(), "shoulder", false) * Constants.SHOULDER_MAX_SPEED
+            () -> modifyAxis(m_combined_controller.getShoulderRotation(), "shoulder", false) * Constants.SHOULDER_MAX_SPEED,
+            m_combined_controller::getBypassLimitButton
     ));
     m_clawSubsystem.setDefaultCommand(new ClawCommand(
             m_clawSubsystem,
@@ -77,6 +79,11 @@ public class RobotContainer {
 
     // Configure the button bindings
     configureButtonBindings();
+  }
+
+  public void doAlwaysSmartDashboard() {
+    if (m_armSubsystem != null)
+      m_armSubsystem.dashboardInfo();
   }
 
   public void calibrateGyro() {
@@ -103,6 +110,9 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
+//    if (true) {
+//      return new AutonomousDriveBackCommand(m_drivetrainSubsystem);
+//    }
     return new InstantCommand();
   }
 

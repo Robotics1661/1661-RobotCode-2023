@@ -25,6 +25,10 @@ public class JoyXboxWrapper {
         return getFlightButton(4);
     }
 
+    public boolean getBypassLimitButton() {
+        return getFlightButton(11);
+    }
+
     public double getLateralX() {
         return isSoftDisabled() ? 0 : m_joystick.getX();
     }

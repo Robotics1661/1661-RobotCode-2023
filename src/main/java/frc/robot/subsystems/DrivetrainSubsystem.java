@@ -162,6 +162,7 @@ public class DrivetrainSubsystem extends SubsystemBase {
    * 'forwards' direction.
    */
   public void zeroGyroscope() {
+        m_pigeon.zeroGyroBiasNow();
     // DONE Remove if you are using a Pigeon
 //    m_pigeon.setFusedHeading(0.0);
 
