@@ -110,9 +110,9 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // An ExampleCommand will run in autonomous
-//    if (true) {
-//      return new AutonomousDriveBackCommand(m_drivetrainSubsystem);
-//    }
+    if (true) {
+      return new AutonomousDriveBackCommand(m_drivetrainSubsystem);
+    }
     return new InstantCommand();
   }
 

@@ -39,11 +39,13 @@ public class AutonomousDriveBackCommand extends CommandBase {
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
         m_drivetrainSubsystem.drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
-                        0.8,
+                        .8, //changed this to 1.6 from .8 which was the original dist
+                        //I changed this so now it drives past the charge station then goes back onto it
                         0,
                         0,
                         m_drivetrainSubsystem.getGyroscopeRotation()
                 )
+                
         );
     }
 

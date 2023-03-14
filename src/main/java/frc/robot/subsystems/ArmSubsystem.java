@@ -52,6 +52,13 @@ public class ArmSubsystem extends SubsystemBase {
         double shoulderDegrees = shoulderConverter.toRealDegrees(shoulderMotor.getSelectedSensorPosition());
         int softLimit = hardLimit + escapeZone;
 
+        
+        
+          int backHardLimit = 115;
+          int backEscapeZone = 5;
+          int backSoftLimit = backHardLimit - backEscapeZone;
+          
+         
 
         if (shoulderDegrees < softLimit && doEscape) {
             speed = 0;
@@ -77,7 +84,33 @@ public class ArmSubsystem extends SubsystemBase {
             SmartDashboard.putBoolean("currentlyEndanger", currentlyEndanger);
             SmartDashboard.putBoolean("mustEscape", mustEscape);
         }
-
+            
+         // this will be the code for the shoulder not going to far back and 
+              //damaging the metal
+            if(shoulderDegrees > backSoftLimit && doEscape){
+                speed = 0;
+            }
+            if(doEscape){
+                boolean currentlyBackSafe = shoulderDegrees < backSoftLimit - 10;
+                boolean currentlyBackDanger = shoulderDegrees >= backSoftLimit - 10;
+                boolean mustEscape = false;
+                if (gettingToSafety) {
+                    if (currentlyBackSafe) {
+                        gettingToSafety = false;
+                    } else {
+                        mustEscape = true;
+                    }
+                } else if(currentlyBackDanger){
+                    gettingToSafety = true;
+                    mustEscape = true;
+                }
+                if(mustEscape){
+                    speed = +0.15;
+                }
+            }
+            //SmartDashboard.putBoolean("currentlyBackSafe", currentlyBackSafe);
+            //SmartDashboard.putBoolean("currentlyBackDanger", );
+            
 
         speed = boundSpeed(speed);
         shoulderMotor.set(TalonFXControlMode.PercentOutput, speed);
