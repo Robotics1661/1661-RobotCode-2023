@@ -62,4 +62,6 @@ public final class Constants {
     public static final int CONE_BUTTON = 5;
     public static final int CUBE_BUTTON = 6;
     public static final int RELEASE_BUTTON = 2;
+
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.FORWARD_AND_BALANCE;
 }

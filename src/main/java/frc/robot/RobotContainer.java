@@ -109,11 +109,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
-    if (true) {
-      return new AutonomousDriveBackCommand(m_drivetrainSubsystem);
-    }
-    return new InstantCommand();
+    return Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem);
   }
 
   private static double deadband(double value, double deadband) {
