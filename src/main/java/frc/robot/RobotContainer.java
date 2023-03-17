@@ -109,7 +109,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    return Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem);
+    return Constants.AUTONOMOUS_MODE.getCommand(m_drivetrainSubsystem, m_armSubsystem, m_clawSubsystem);
   }
 
   private static double deadband(double value, double deadband) {

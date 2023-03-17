@@ -3,17 +3,25 @@ package frc.robot.commands;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DrivetrainSubsystem;
 
-public class AutonomousDriveBackAndForthCommand extends CommandBase {
+public class Full20PointAutoCommand extends CommandBase {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
+    private ArmSubsystem m_armSubsystem;
+    private ClawSubsystem m_clawSubsystem;
 
-    public AutonomousDriveBackAndForthCommand(DrivetrainSubsystem drivetrainSubsystem) {
+    public Full20PointAutoCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
         this.m_startTime = Timer.getFPGATimestamp(); //just as a failsafe
         this.m_drivetrainSubsystem = drivetrainSubsystem;
+        this.m_armSubsystem = armSubsystem;
+        this.m_clawSubsystem = clawSubsystem;
 
         addRequirements(this.m_drivetrainSubsystem);
+        addRequirements(this.m_armSubsystem);
+        addRequirements(this.m_clawSubsystem);
     }
 
     /*
