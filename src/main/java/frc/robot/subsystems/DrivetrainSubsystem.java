@@ -181,6 +181,11 @@ public class DrivetrainSubsystem extends SubsystemBase {
         //m_pigeon.enterCalibrat
   }
 
+  /* Calibrate gyro to the robot facing backwards */
+  public void calibrateGyro180() {
+        m_pigeon.setYaw(180);
+  }
+
   public double[] getFullGyroscopeRotation() {
         double[] ypr = new double[3];
         m_pigeon.getYawPitchRoll(ypr); //y + z indicate tilt
@@ -245,5 +250,9 @@ public class DrivetrainSubsystem extends SubsystemBase {
     SmartDashboard.putNumber("gyro", getGyroscopeRotation().getDegrees());
     double chargePitch = getChargeStationPitch();
 //    SmartDashboard.putNumber("gravityCombined", Math.sqrt(xyz[1]*xyz[1] + xyz[2]*xyz[2]));
+  }
+  
+  public void stop() {
+    drive(new ChassisSpeeds(0.0, 0.0, 0.0));
   }
 }

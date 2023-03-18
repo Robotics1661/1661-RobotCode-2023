@@ -2,16 +2,23 @@ package frc.robot.commands;
 
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ClawSubsystem;
 import frc.robot.subsystems.DrivetrainSubsystem;
 
+/*
+ * MUST start robot backwards (eg arm faces drive station)
+ */
 public class Full20PointAutoCommand extends CommandBase {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
     private ArmSubsystem m_armSubsystem;
     private ClawSubsystem m_clawSubsystem;
+    private boolean finished = false;
+    private ExecutionTarget execTarget = ExecutionTarget.FIRST;
 
     public Full20PointAutoCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
         this.m_startTime = Timer.getFPGATimestamp(); //just as a failsafe
@@ -34,18 +41,37 @@ public class Full20PointAutoCommand extends CommandBase {
     @Override
     public void initialize() {
         m_startTime = Timer.getFPGATimestamp();
-        m_drivetrainSubsystem.calibrateGyro();
+        m_drivetrainSubsystem.calibrateGyro180();
+        execTarget = ExecutionTarget.FIRST;
+        m_clawSubsystem.grabCube();
+        initializedOffset = false;
+        timeOffset1 = 0;
+        if (Constants.GAME_PIECE_MODE == GamePieceMode.CONE)
+            throw new RuntimeException("Values not set, will break"); // FIXME remove this once the GamePieceMode values are set
     }
 
-    private boolean shouldMove() {
-        return getRunningTime() < 9.5;
-    }
-
-    @Override
-    public void execute() {
-        if (!shouldMove()) return; //failsafe, should finalize
+    private void doForwardAndBalance(double timeOffset) {
+        if (false) { // just if you need to disable this
+            finished = true;
+            return;
+        }
+        if (isFinished()) return;
+        double time = getRunningTime() - timeOffset;
+        SmartDashboard.putNumber("shoulderDifference", time);
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
-        if (getRunningTime() < 3.5) { //Drive to balance
+        if (time < 3.5) { //Drive to balance
+            SmartDashboard.putString("autoTargets", "moving to charge 1");
+            m_drivetrainSubsystem.drive(
+                    ChassisSpeeds.fromFieldRelativeSpeeds(
+                            1.2,
+                            0,
+                            0,
+                            m_drivetrainSubsystem.getGyroscopeRotation()
+                    )
+                    
+            );
+        } else if (time < 3.5) { //Drive forward and off (for another 2 seconds)
+            SmartDashboard.putString("autoTargets", "moving forwar & off");
             m_drivetrainSubsystem.drive(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                             .8,
@@ -55,18 +81,11 @@ public class Full20PointAutoCommand extends CommandBase {
                     )
                     
             );
-        } else if (getRunningTime() < 5.75) { //Drive forward and off (for another 2 seconds)
-            m_drivetrainSubsystem.drive(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                            .6,
-                            0,
-                            0,
-                            m_drivetrainSubsystem.getGyroscopeRotation()
-                    )
-                    
-            );
-        } else if (getRunningTime() < 6.25) { //.5 seconds wait
-        } else if (getRunningTime() < 9.5) { //Drive back onto charge station (for 3.25 seconds)
+        } else if (time < 4) {
+            //.5 seconds wait (no-op)
+            SmartDashboard.putString("autoTargets", "waiting");
+        } else if (time < 7.25) { //Drive back onto charge station (for 3.25 seconds)
+            SmartDashboard.putString("autoTargets", "moving to charge the return (time="+time+")");
             m_drivetrainSubsystem.drive(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                             -.8,
@@ -76,16 +95,156 @@ public class Full20PointAutoCommand extends CommandBase {
                     )
                     
             );
+        } else {
+            SmartDashboard.putString("autoTargets", "I stopped running for real!");
+            m_drivetrainSubsystem.stop();
+            finished = true; // command can stop running now
+        }
+    }
+
+    private static enum ExecutionTarget {
+        EXTEND_ELBOW_PRELIM, // extend arm to starting elbow target, so we don't move it through solid objects later
+        EXTEND_SHOULDER, // extend arm to shoulder target
+        EXTEND_ELBOW,    // extend arm to elbow target, continue holding shoulder at target
+        ALIGN,           // push slightly against driver station to align, keep holding all of arm at target
+        DROP,            // release cube
+        STOW_SHOULDER,   // move shoulder to stow position
+        STOW_ELBOW,      // move elbow to stow position
+        BALANCE          // turn over control to balance code
+        ;
+        private static final ExecutionTarget FIRST = EXTEND_ELBOW_PRELIM;
+        public ExecutionTarget next() {
+            return values()[Math.min(ordinal() + 1, values().length-1)];
+        }
+    }
+
+    public static enum GamePieceMode {
+        CONE(58.740087, 0.0, 0.0), //FIXME real values
+        CUBE(58.740087, 75.945737, 25)
+        ;
+        public final double elbowPrelimDegrees;
+        public final double shoulderTargetDegrees;
+        public final double elbowTargetDegrees;
+        GamePieceMode(double elbowPrelimDegrees, double shoulderTargetDegrees, double elbowTargetDegrees) {
+            this.elbowPrelimDegrees = elbowPrelimDegrees;
+            this.shoulderTargetDegrees = shoulderTargetDegrees;
+            this.elbowTargetDegrees = elbowTargetDegrees;
+        }
+    }
+
+    String tmp = "";
+
+    /* Advance to next execution target */
+    private void next() {
+        execTarget = execTarget.next();
+        sectionReadyForStart = true;
+        tmp += ", "+execTarget.name();
+    }
+
+    private double sectionTimeOffset = 0.0;
+    private boolean sectionReadyForStart = false;
+    /* returns true first time it is called after a call to next() */
+    private boolean sectionStart() {
+        if (sectionReadyForStart) {
+            sectionTimeOffset = getRunningTime();
+            sectionReadyForStart = false;
+            return true;
+        }
+        return false;
+    }
+
+    private double getSectionTime() {
+        return getRunningTime() - sectionTimeOffset;
+    }
+
+    private boolean initializedOffset = false;
+    private double timeOffset1 = 0;
+
+    @Override
+    public void execute() {
+        if (isFinished()) return;
+        double elbowPrelimTarget = Constants.GAME_PIECE_MODE.elbowPrelimDegrees;
+        double shoulderExtensionTarget = Constants.GAME_PIECE_MODE.shoulderTargetDegrees;
+        double elbowExtensionTarget = Constants.GAME_PIECE_MODE.elbowTargetDegrees;
+        double shoulderStowTarget = 103;      // degrees resting position
+        double elbowStowTarget = -62;         // degrees resting position
+        //SmartDashboard.putString("autoTarget", execTarget.name());
+        //SmartDashboard.putString("autoTargets", tmp);
+        switch (execTarget) {
+            case EXTEND_ELBOW_PRELIM:
+                if (m_armSubsystem.elbowApproachDegrees(elbowPrelimTarget)) {
+                    m_armSubsystem.stopMovement();
+                    next();
+                }
+                break;
+            case EXTEND_SHOULDER:
+                if (m_armSubsystem.shoulderApproachDegrees(shoulderExtensionTarget))
+                    next();
+                break;
+            case EXTEND_ELBOW:
+                m_armSubsystem.shoulderApproachDegrees(shoulderExtensionTarget);
+                if (m_armSubsystem.elbowApproachDegrees(elbowExtensionTarget))
+                    next();
+                break;
+            case ALIGN:
+                sectionStart(); // yes, this is safe
+                m_armSubsystem.shoulderApproachDegrees(shoulderExtensionTarget);
+                m_armSubsystem.elbowApproachDegrees(elbowExtensionTarget);
+                if (getSectionTime() < 0.1) {
+                    m_drivetrainSubsystem.drive(ChassisSpeeds.fromFieldRelativeSpeeds(
+                        -.1,
+                        0,
+                        0,
+                        m_drivetrainSubsystem.getGyroscopeRotation()
+                    ));
+                } else {
+                    m_drivetrainSubsystem.stop();
+                    next();
+                }
+                break;
+            case DROP:
+                m_armSubsystem.stopMovement();
+                if (sectionStart())
+                    m_clawSubsystem.release();
+                if (getSectionTime() > 0.5)
+                    next();
+                break;
+            case STOW_SHOULDER:
+                if (m_armSubsystem.shoulderApproachDegrees(shoulderStowTarget, 1, false))
+                    next();
+                break;
+            case STOW_ELBOW:
+                m_armSubsystem.shoulderApproachDegrees(shoulderStowTarget, 1, false);
+                if (m_armSubsystem.elbowApproachDegrees(elbowStowTarget, 1)) {
+                    m_armSubsystem.stopMovement();
+                    next();
+                }
+                break;
+            case BALANCE:
+                if (!initializedOffset) {
+                    initializedOffset = true;
+                    timeOffset1 = getRunningTime();
+                    SmartDashboard.putString("autoTarget", "RT: "+timeOffset1);
+                }
+                // time offset system so forward and balance timing doesn't get
+                // affected by gamepiece placement
+                doForwardAndBalance(timeOffset1);
+                break;
+            default:
+                finished = true;
+                break;
         }
     }
 
     @Override
     public boolean isFinished() {
-        return !shouldMove();
+        return finished;
     }
 
     @Override
     public void end(boolean interrupted) {
+        m_armSubsystem.moveElbow(0);
+        m_armSubsystem.moveShoulder(0, false);
         m_drivetrainSubsystem.drive(new ChassisSpeeds(0.0, 0.0, 0.0));
     }
 /*

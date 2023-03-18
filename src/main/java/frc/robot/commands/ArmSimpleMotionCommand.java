@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.subsystems.ArmSubsystem;
 
@@ -27,7 +28,9 @@ public class ArmSimpleMotionCommand extends CommandBase {
 
     @Override
     public void execute() {
-        m_armSubsystem.moveElbow(m_rotationElbowSupplier.getAsDouble());
+        double elbow = m_rotationElbowSupplier.getAsDouble();
+        SmartDashboard.putNumber("elbowControlDebug", elbow);
+        m_armSubsystem.moveElbow(elbow);
         m_armSubsystem.moveShoulder(m_rotationShoulderSupplier.getAsDouble(), !m_bypassLimitSupplier.getAsBoolean());
         m_armSubsystem.dashboardInfo();
         //if (m_zeroSensorSupplier.getAsBoolean())

@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import frc.robot.commands.Full20PointAutoCommand.GamePieceMode;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -63,5 +65,6 @@ public final class Constants {
     public static final int CUBE_BUTTON = 6;
     public static final int RELEASE_BUTTON = 2;
 
-    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.FORWARD_AND_BALANCE;
+    public static final AutonomousMode AUTONOMOUS_MODE = AutonomousMode.FULL_20_POINT;
+    public static final GamePieceMode GAME_PIECE_MODE = GamePieceMode.CUBE; // which game piece Full20Point auto should use
 }

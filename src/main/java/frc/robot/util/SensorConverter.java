@@ -14,6 +14,16 @@ public class SensorConverter {
     private double difference_sens;
     private double difference_degrees;
     private boolean sensorIsBackwards;
+    private static final SensorConverter SHOULDER_CONVERTER = makeShoulder();
+    private static final SensorConverter ELBOW_CONVERTER = makeElbow();
+
+    public static double getShoulderDegrees(double reportedSensorUnits) {
+        return SHOULDER_CONVERTER.toRealDegrees(reportedSensorUnits);
+    }
+
+    public static double getElbowDegrees(double reportedSensorUnits) {
+        return ELBOW_CONVERTER.toRealDegrees(reportedSensorUnits);
+    }
 
     public static SensorConverter makeShoulder() {
         return new SensorConverter(29467, 90,
