@@ -13,7 +13,7 @@ import frc.robot.GamePieceMode;
 /*
  * MUST start robot backwards (eg arm faces drive station)
  */
-public class Full20PointAutoCommand extends CommandBase {
+public class PlaceCubeAndTaxiLongCommand extends CommandBase {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
     private ArmSubsystem m_armSubsystem;
@@ -21,7 +21,7 @@ public class Full20PointAutoCommand extends CommandBase {
     private boolean finished = false;
     private ExecutionTarget execTarget = ExecutionTarget.FIRST;
 
-    public Full20PointAutoCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
+    public PlaceCubeAndTaxiLongCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
         this.m_startTime = Timer.getFPGATimestamp(); //just as a failsafe
         this.m_drivetrainSubsystem = drivetrainSubsystem;
         this.m_armSubsystem = armSubsystem;
@@ -51,7 +51,20 @@ public class Full20PointAutoCommand extends CommandBase {
             throw new RuntimeException("Values not set, will break"); // FIXME remove this once the GamePieceMode values are set
     }
 
-    private void doForwardAndBalance(double timeOffset) {
+    private double getWrappedGyroDegrees() {
+        double degrees = m_drivetrainSubsystem.getGyroscopeRotation().getDegrees();
+        while (degrees > 360)
+            degrees -= 360;
+        while (degrees < 0)
+            degrees += 360;
+        if (degrees > 180) {
+            degrees = degrees - 360; //10 and 350 turn to 10 and -10 respectively
+            // 180 and 181 turn to 180 and -179 respectively
+        }
+        return degrees;
+    }
+
+    private void doMovement(double timeOffset) {
         if (false) { // just if you need to disable this
             finished = true;
             return;
@@ -60,19 +73,8 @@ public class Full20PointAutoCommand extends CommandBase {
         double time = getRunningTime() - timeOffset;
         SmartDashboard.putNumber("shoulderDifference", time);
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
-        if (time < 4.0) { //Drive to balance
-            SmartDashboard.putString("autoTargets", "moving to charge 1");
-            m_drivetrainSubsystem.drive(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                            1.0,
-                            0,
-                            0,
-                            m_drivetrainSubsystem.getGyroscopeRotation()
-                    )
-                    
-            );
-        } else if (false) { //Drive forward and off (for another 2 seconds)
-            SmartDashboard.putString("autoTargets", "moving forwar & off");
+        if (time < 5.5) { //Drive out of community area
+            SmartDashboard.putString("autoTargets", "moving out of community area");
             m_drivetrainSubsystem.drive(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                             .8,
@@ -82,30 +84,29 @@ public class Full20PointAutoCommand extends CommandBase {
                     )
                     
             );
-        } else if (time < 4.5) {
-            //.5 seconds wait (no-op)
-            SmartDashboard.putString("autoTargets", "waiting");
-        } else if (time < (7.75 * 0.95)) { //Drive back onto charge station (for 3.25 seconds)
-            SmartDashboard.putString("autoTargets", "moving to charge the return (time="+time+")");
-            m_drivetrainSubsystem.drive(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                            -.8,
-                            0,
-                            0,
-                            m_drivetrainSubsystem.getGyroscopeRotation()
-                    )
-                    
-            );
         } else {
-            SmartDashboard.putString("autoTargets", "I stopped running for real!");
-            m_drivetrainSubsystem.stop();
-            finished = true; // command can stop running now
+            double wrappedDegrees = getWrappedGyroDegrees();
+            boolean disableRotation = false;
+            if (Math.abs(wrappedDegrees) < 4 || disableRotation) {
+                SmartDashboard.putString("autoTargets", "I stopped running ("+wrappedDegrees+")");
+                m_drivetrainSubsystem.stop();
+                finished = true; // command can stop running now
+            } else {
+                SmartDashboard.putString("autoTargets", "Spinny spinny spin ("+wrappedDegrees+")");
+                m_drivetrainSubsystem.drive(
+                        ChassisSpeeds.fromFieldRelativeSpeeds(
+                                0,
+                                0,
+                                2,
+                                m_drivetrainSubsystem.getGyroscopeRotation()
+                        )
+                );
+            }
         }
     }
 
     private static enum ExecutionTarget {
         EXTEND_ELBOW_PRELIM, // extend arm to starting elbow target, so we don't move it through solid objects later
-        EXTEND_ELBOW_PRELIM_AND_SHOULDER,
         EXTEND_SHOULDER, // extend arm to shoulder target
         EXTEND_ELBOW,    // extend arm to elbow target, continue holding shoulder at target
         ALIGN,           // push slightly against driver station to align, keep holding all of arm at target
@@ -160,20 +161,12 @@ public class Full20PointAutoCommand extends CommandBase {
         //SmartDashboard.putString("autoTargets", tmp);
         switch (execTarget) {
             case EXTEND_ELBOW_PRELIM:
-                if (m_armSubsystem.elbowApproachDegrees(elbowPrelimTarget, 45)) {
+                if (m_armSubsystem.elbowApproachDegrees(elbowPrelimTarget)) {
                     m_armSubsystem.stopMovement();
                     next();
                 }
                 break;
-            case EXTEND_ELBOW_PRELIM_AND_SHOULDER:
-                boolean elbowDone = m_armSubsystem.elbowApproachDegrees(elbowPrelimTarget);
-                boolean shoulderDone = m_armSubsystem.shoulderApproachDegrees(shoulderExtensionTarget);
-                SmartDashboard.putString("autoTargets", "elbow("+elbowDone+")"+", shoulder("+shoulderDone+")");
-                if (elbowDone)
-                    next();
-                break;
             case EXTEND_SHOULDER:
-                SmartDashboard.putString("autoTargets", "elbow_not_running");
                 if (m_armSubsystem.shoulderApproachDegrees(shoulderExtensionTarget))
                     next();
                 break;
@@ -224,7 +217,7 @@ public class Full20PointAutoCommand extends CommandBase {
                 }
                 // time offset system so forward and balance timing doesn't get
                 // affected by gamepiece placement
-                doForwardAndBalance(timeOffset1);
+                doMovement(timeOffset1);
                 break;
             default:
                 finished = true;

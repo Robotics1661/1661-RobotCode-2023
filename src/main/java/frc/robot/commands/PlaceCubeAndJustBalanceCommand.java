@@ -13,7 +13,7 @@ import frc.robot.GamePieceMode;
 /*
  * MUST start robot backwards (eg arm faces drive station)
  */
-public class Full20PointAutoCommand extends CommandBase {
+public class PlaceCubeAndJustBalanceCommand extends CommandBase {
     private double m_startTime;
     private DrivetrainSubsystem m_drivetrainSubsystem;
     private ArmSubsystem m_armSubsystem;
@@ -21,7 +21,7 @@ public class Full20PointAutoCommand extends CommandBase {
     private boolean finished = false;
     private ExecutionTarget execTarget = ExecutionTarget.FIRST;
 
-    public Full20PointAutoCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
+    public PlaceCubeAndJustBalanceCommand(DrivetrainSubsystem drivetrainSubsystem, ArmSubsystem armSubsystem, ClawSubsystem clawSubsystem) {
         this.m_startTime = Timer.getFPGATimestamp(); //just as a failsafe
         this.m_drivetrainSubsystem = drivetrainSubsystem;
         this.m_armSubsystem = armSubsystem;
@@ -60,36 +60,11 @@ public class Full20PointAutoCommand extends CommandBase {
         double time = getRunningTime() - timeOffset;
         SmartDashboard.putNumber("shoulderDifference", time);
         // You can use `new ChassisSpeeds(...)` for robot-oriented movement instead of field-oriented movement
-        if (time < 4.0) { //Drive to balance
-            SmartDashboard.putString("autoTargets", "moving to charge 1");
-            m_drivetrainSubsystem.drive(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                            1.0,
-                            0,
-                            0,
-                            m_drivetrainSubsystem.getGyroscopeRotation()
-                    )
-                    
-            );
-        } else if (false) { //Drive forward and off (for another 2 seconds)
-            SmartDashboard.putString("autoTargets", "moving forwar & off");
+        if (time < 3.5) { //Drive to balance
+            SmartDashboard.putString("autoTargets", "moving to charge balance");
             m_drivetrainSubsystem.drive(
                     ChassisSpeeds.fromFieldRelativeSpeeds(
                             .8,
-                            0,
-                            0,
-                            m_drivetrainSubsystem.getGyroscopeRotation()
-                    )
-                    
-            );
-        } else if (time < 4.5) {
-            //.5 seconds wait (no-op)
-            SmartDashboard.putString("autoTargets", "waiting");
-        } else if (time < (7.75 * 0.95)) { //Drive back onto charge station (for 3.25 seconds)
-            SmartDashboard.putString("autoTargets", "moving to charge the return (time="+time+")");
-            m_drivetrainSubsystem.drive(
-                    ChassisSpeeds.fromFieldRelativeSpeeds(
-                            -.8,
                             0,
                             0,
                             m_drivetrainSubsystem.getGyroscopeRotation()
