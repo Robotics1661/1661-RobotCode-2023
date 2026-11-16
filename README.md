@@ -15,7 +15,7 @@
 ![Java: 11](https://img.shields.io/badge/Java-11-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
 [![WPILib: 2023](https://img.shields.io/badge/WPILib-2023-003366?style=for-the-badge)](https://docs.wpilib.org/)
 ![Swerve: SDS](https://img.shields.io/badge/Swerve-SDS-FFB400?style=for-the-badge)
-[![License](https://img.shields.io/github/license/Robotics1661/1661-RobotCode-2023?style=for-the-badge&color=d40000)](LICENSE)
+[![License](https://img.shields.io/github/license/Robotics1661/1661-RobotCode-2023?style=for-the-badge&color=d40000&cachebust=20261116)](LICENSE)
 
 </div>
 
